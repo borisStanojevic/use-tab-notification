@@ -2,9 +2,17 @@ import { useState, useEffect, useRef } from "react";
 
 const originalTitle = document.title;
 
-const useTabNotification = (message, interval = 1000) => {
-  const [shouldNotify, setShouldNotify] = useState(false);
+const useTabNotification = (interval = 1000) => {
+  const [message, setMessage] = useState(null);
   const notificationIntervalId = useRef(null);
+
+  const setTabNotification = (message) => {
+    setMessage(message);
+  };
+
+  const clearTabNotification = () => {
+    setMessage(null);
+  };
 
   const tick = () => {
     document.title = document.title === message ? originalTitle : message;
@@ -20,10 +28,10 @@ const useTabNotification = (message, interval = 1000) => {
   };
 
   useEffect(() => {
-    if (notificationIntervalId.current && !shouldNotify) stopNotifying();
+    if (notificationIntervalId.current && !message) stopNotifying();
 
-    if (!notificationIntervalId.current && shouldNotify) startNotifying();
-  }, [shouldNotify]);
+    if (!notificationIntervalId.current && message) startNotifying();
+  }, [message]);
 
   useEffect(() => {
     return () => {
@@ -33,7 +41,7 @@ const useTabNotification = (message, interval = 1000) => {
     };
   }, []);
 
-  return [shouldNotify, setShouldNotify];
+  return [setTabNotification, clearTabNotification];
 };
 
 export default useTabNotification;
