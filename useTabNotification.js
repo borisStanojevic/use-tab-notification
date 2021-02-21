@@ -2,30 +2,35 @@ import { useState, useEffect, useRef } from "react";
 
 const originalTitle = document.title;
 
-const useTabNotification = (interval = 1000) => {
+function revertOriginalTitle() {
+  document.title = originalTitle;
+}
+
+function tick(message) {
+  document.title = document.title === message ? originalTitle : message;
+}
+
+function useTabNotification(interval = 1000) {
   const [message, setMessage] = useState(null);
   const notificationIntervalId = useRef(null);
 
-  const setTabNotification = (message) => {
+  function setTabNotification(message) {
     setMessage(message);
-  };
+  }
 
-  const clearTabNotification = () => {
+  function clearTabNotification() {
+    revertOriginalTitle();
     setMessage(null);
-  };
+  }
 
-  const tick = () => {
-    document.title = document.title === message ? originalTitle : message;
-  };
+  function startNotifying() {
+    notificationIntervalId.current = setInterval(tick, interval, message);
+  }
 
-  const startNotifying = () => {
-    notificationIntervalId.current = setInterval(tick, interval);
-  };
-
-  const stopNotifying = () => {
+  function stopNotifying() {
     clearInterval(notificationIntervalId.current);
     notificationIntervalId.current = null;
-  };
+  }
 
   useEffect(() => {
     if (notificationIntervalId.current && !message) stopNotifying();
@@ -35,13 +40,14 @@ const useTabNotification = (interval = 1000) => {
 
   useEffect(() => {
     return () => {
-      if (document.title !== originalTitle) document.title = originalTitle;
+      if (document.title !== originalTitle) revertOriginalTitle();
+
       if (notificationIntervalId.current)
         clearInterval(notificationIntervalId.current);
     };
   }, []);
 
   return [setTabNotification, clearTabNotification];
-};
+}
 
 export default useTabNotification;
